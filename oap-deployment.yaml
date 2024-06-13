@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oap
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: oap
+  template:
+    metadata:
+      labels:
+        app: oap
+    spec:
+      containers:
+        - name: oap
+          image: apache/skywalking-oap-server:10.0.0
+          ports:
+            - containerPort: 11800
+            - containerPort: 12800
+          resources:
+            limits:
+              memory: "2280Mi"
+              cpu: "500m"
+          env:
+            - name: SW_STORAGE
+              value: elasticsearch
+            - name: SW_STORAGE_ES_CLUSTER_NODES
+              value: elasticsearch:9200
+            - name: SW_HEALTH_CHECKER
+              value: default
+            - name: SW_TELEMETRY
+              value: prometheus
+            - name: JAVA_OPTS
+              value: "-Xms2048m -Xmx2048m"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: oap
+spec:
+  selector:
+    app: oap
+  ports:
+    - name: backend
+      protocol: TCP
+      port: 11800
+      targetPort: 11800
+    - name: ui
+      protocol: TCP
+      port: 12800
+      targetPort: 12800
